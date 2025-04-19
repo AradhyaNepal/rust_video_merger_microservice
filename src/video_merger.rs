@@ -33,7 +33,7 @@ pub fn progressive_join(files: Vec<FileDetails>, output: &str,log_path:&str) -> 
                 save_file_details(log_path, &vec![
                     first_file.clone(),
                     file.clone()
-                ]);
+                ],0);
                 // Join the first two files using FFmpeg in terminal
                 match join_two_files_terminal(&current_joined_file.as_ref().unwrap(), &file.path, &output){
                     Ok(_)=>{},
@@ -50,7 +50,7 @@ pub fn progressive_join(files: Vec<FileDetails>, output: &str,log_path:&str) -> 
                                 remarks:error,
                                 ..file.clone()
                             },
-                        ]);
+                        ],0);
                       return Ok(());
                     }
 
@@ -68,7 +68,7 @@ pub fn progressive_join(files: Vec<FileDetails>, output: &str,log_path:&str) -> 
                         ended_at:now,
                         ..file.clone()
                     },
-                ]);
+                ],1);
                
               
             }
@@ -80,7 +80,7 @@ pub fn progressive_join(files: Vec<FileDetails>, output: &str,log_path:&str) -> 
                 };
                 save_file_details(log_path, &vec![
                     file.clone()
-                ]);
+                ],index as i32);
                 // Join the remaining files
                 match join_two_files_terminal(&current_joined_file.as_ref().unwrap(), &file.path, &output){
                     Ok(_)=>{},
@@ -92,7 +92,7 @@ pub fn progressive_join(files: Vec<FileDetails>, output: &str,log_path:&str) -> 
                                 remarks:error,
                                 ..file.clone()
                             },
-                        ]);
+                        ],index as i32);
                         return Ok(());
                     }
                 };
@@ -104,7 +104,7 @@ pub fn progressive_join(files: Vec<FileDetails>, output: &str,log_path:&str) -> 
                         ended_at:Some(Utc::now().to_rfc3339()),
                         ..file.clone()
                     }
-                ]);
+                ],index as i32);
 
             }
         }
