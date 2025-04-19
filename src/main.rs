@@ -32,8 +32,8 @@ let file_size = metadata.unwrap().len(); // in bytes
     }
   })
     .collect();
-  save_file_details(input, &value);
+ save_file_details(input, &value).unwrap();
 
-  progressive_join(value.iter().map(|e|e.path.clone()).collect(),output);
+  progressive_join(value,output,&input);
 
 }

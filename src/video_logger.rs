@@ -23,28 +23,7 @@ pub struct FileDetails {
     pub started_at: Option<String>,
     pub ended_at: Option<String>,
 }
-impl FileDetails {
-    pub fn copy_with(
-        &self,
-        order: Option<i32>,
-        path: Option<String>,
-        file_size: Option<u64>,
-        status: Option<FileStatus>,
-        remarks: Option<Option<String>>,
-        started_at: Option<Option<String>>,
-        ended_at: Option<Option<String>>,
-    ) -> FileDetails {
-        FileDetails {
-            order: order.unwrap_or(self.order),
-            path: path.unwrap_or(self.path.clone()),
-            file_size: file_size.unwrap_or(self.file_size),
-            status: status.unwrap_or(self.status.clone()),
-            remarks: remarks.flatten().or(self.remarks.clone()), // Use provided remarks or the original
-            started_at: started_at.flatten().or(self.started_at.clone()), // Use provided started_at or the original
-            ended_at: ended_at.flatten().or(self.ended_at.clone()), // Use provided ended_at or the original
-        }
-    }
-}
+
 #[derive(Serialize, Deserialize)]
 struct Meta {
     created_at: String,
@@ -61,7 +40,7 @@ struct FileWrapper {
 
 pub fn save_file_details(location: &str,items:&Vec<FileDetails>) -> io::Result<()> {
     let mut existing_data = String::new();
-    let location = format!("{}/progress.json", location);
+    let location = format!("{}/report.json", location);
 
     // Try to open and read existing file
    match File::open(&location) {
