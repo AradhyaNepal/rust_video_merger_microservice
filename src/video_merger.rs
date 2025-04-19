@@ -2,21 +2,32 @@ use std::process::{Command, exit};
 use std::fs::{self, File};
 use std::io::{Write};
 use chrono::Utc;
-use crate::video_logger::{save_file_details, FileDetails, FileStatus};
+use crate::video_logger::{save_file_details, FileDetails, FileStatus,FileWrapper};
 
-pub fn progressive_join(files: Vec<FileDetails>, output: &str,log_path:&str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn progressive_join(files: FileWrapper, output: &str,log_path:&str) -> Result<(), Box<dyn std::error::Error>> {
+
     let mut current_joined_file: Option<String> = None;
-   
-    for (index, file) in files.iter().enumerate() {
+   let last_index=(files.files.len()-1) as i32;
+    let is_completed=files.files[&last_index].status==FileStatus::Completed;
+    if(is_completed){
+        return Ok(());
+    }
+    for index in 0..=last_index {
+        let parsed_index=index as i32;
+        if parsed_index<files.meta.at_order{
+            continue;
+        }
+        let file=files.files[&index].clone();
+        if file.status == FileStatus::Completed{
+            continue;
+        }
         let output = format!("{}/output_{}.mp4", output,index);
-
-        
         match index {
             0 => {
                 current_joined_file = Some(file.path.clone());
             }
             1 => {
-                let first_file= files.first().unwrap().clone();
+                let first_file= files.files[&0].clone();
                 let now= Some(Utc::now().to_rfc3339());
                 let first_file= FileDetails{
                     status:FileStatus::Pending,
@@ -116,6 +127,9 @@ pub fn progressive_join(files: Vec<FileDetails>, output: &str,log_path:&str) -> 
 
 fn join_two_files_terminal(input1: &str, input2: &str, output: &str) -> Result<(), Box<dyn std::error::Error>> {
  
+ if output.contains("19042025_73756"){
+    return  Err("Mocked error".into());
+ }
     let mut file_list = File::create("mylist.txt")?;
    // This will panic because of division by zero
     // Add input video paths to the file list

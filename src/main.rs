@@ -36,7 +36,7 @@ fn main() {
         }
       })
         .collect();
-      save_file_details(input, &value,0).unwrap();
+      let value= save_file_details(input, &value,0).unwrap();
       value
           }
     };

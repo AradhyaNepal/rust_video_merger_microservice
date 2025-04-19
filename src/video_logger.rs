@@ -1,12 +1,11 @@
-use std::fs::{File, OpenOptions};
-use std::io::{self, BufReader, Read,Write};
-use serde_json::json;
+use std::collections::HashMap;
+use std::fs::File;
+use std::io::{self, Read};
 use chrono::Utc;
 use serde::{Serialize, Deserialize};
-use std::collections::HashMap;
 
 
-#[derive(Serialize, Deserialize, Debug,Clone)]
+#[derive(Serialize, Deserialize, Debug,Clone,PartialEq)]
 pub enum FileStatus{
     Todo,
     Pending,
@@ -25,19 +24,19 @@ pub struct FileDetails {
 }
 
 #[derive(Serialize, Deserialize)]
-struct Meta {
-    created_at: String,
-    at_order:i32,
-    last_updated: Option<String>,
+pub struct Meta {
+    pub created_at: String,
+    pub at_order:i32,
+    pub last_updated: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
-struct FileWrapper {
-    files: HashMap<i32, FileDetails>,
-    meta: Meta,
+pub struct FileWrapper {
+    pub files: HashMap<i32,FileDetails>,
+    pub meta: Meta,
 }
 
-pub fn read_file_details(location: &str) -> io::Result<Option<Vec<FileDetails>>> {
+pub fn read_file_details(location: &str) -> io::Result<Option<FileWrapper>> {
     let location = format!("{}/report.json", location);
 
     let content = match File::open(&location) {
@@ -60,12 +59,10 @@ pub fn read_file_details(location: &str) -> io::Result<Option<Vec<FileDetails>>>
             return Ok(None);
         }
     };
-
-    let mut result = wrapper.files.into_values().collect::<Vec<_>>();
-    Ok(Some(result))
+    Ok(Some(wrapper))
 }
 
-pub fn save_file_details(location: &str,items:&Vec<FileDetails>,at_order:i32) -> io::Result<()> {
+pub fn save_file_details(location: &str,items:&Vec<FileDetails>,at_order:i32) -> io::Result<FileWrapper> {
     let mut existing_data = String::new();
     let location = format!("{}/report.json", location);
 
@@ -93,7 +90,7 @@ pub fn save_file_details(location: &str,items:&Vec<FileDetails>,at_order:i32) ->
         serde_json::from_str(&existing_data)?
     };
     for e in items{
-        wrapper.files.insert(e.order.clone(), e.clone());
+        wrapper.files.insert(e.order, e.clone());
     }
     wrapper.meta.at_order=at_order;
     wrapper.meta.last_updated = Some(Utc::now().to_rfc3339());
@@ -101,6 +98,6 @@ pub fn save_file_details(location: &str,items:&Vec<FileDetails>,at_order:i32) ->
     // Overwrite the file
     let mut file = File::create(location)?;
     serde_json::to_writer_pretty(&mut file, &wrapper)?;
-    Ok(())
+    Ok(wrapper)
 
 }
