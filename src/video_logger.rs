@@ -13,32 +13,35 @@ pub enum FileStatus{
     Error,
     Completed,
 }
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug,Clone)]
 pub struct FileDetails {
     pub order:i32,
     pub path: String,
+    pub file_size: u64,
     pub status: FileStatus,
-    pub remarks: String,
-    pub started_at: String,
-    pub ended_at: String,
+    pub remarks: Option<String>,
+    pub started_at: Option<String>,
+    pub ended_at: Option<String>,
 }
 impl FileDetails {
     pub fn copy_with(
         &self,
         order: Option<i32>,
         path: Option<String>,
+        file_size: Option<u64>,
         status: Option<FileStatus>,
-        remarks: Option<String>,
-        started_at: Option<String>,
-        ended_at: Option<String>,
+        remarks: Option<Option<String>>,
+        started_at: Option<Option<String>>,
+        ended_at: Option<Option<String>>,
     ) -> FileDetails {
         FileDetails {
             order: order.unwrap_or(self.order),
-            path: path.unwrap_or_else(|| self.path.clone()),
-            status: status.unwrap_or_else(|| self.status.clone()),
-            remarks: remarks.unwrap_or_else(|| self.remarks.clone()),
-            started_at: started_at.unwrap_or_else(|| self.started_at.clone()),
-            ended_at: ended_at.unwrap_or_else(|| self.ended_at.clone()),
+            path: path.unwrap_or(self.path.clone()),
+            file_size: file_size.unwrap_or(self.file_size),
+            status: status.unwrap_or(self.status.clone()),
+            remarks: remarks.flatten().or(self.remarks.clone()), // Use provided remarks or the original
+            started_at: started_at.flatten().or(self.started_at.clone()), // Use provided started_at or the original
+            ended_at: ended_at.flatten().or(self.ended_at.clone()), // Use provided ended_at or the original
         }
     }
 }
@@ -56,7 +59,7 @@ struct FileWrapper {
 
 
 
-pub fn save_file_details(location: &String,file_details:FileDetails) -> io::Result<()> {
+pub fn save_file_details(location: &str,items:&Vec<FileDetails>) -> io::Result<()> {
     let mut existing_data = String::new();
     let location = format!("{}/progress.json", location);
 
@@ -82,7 +85,10 @@ pub fn save_file_details(location: &String,file_details:FileDetails) -> io::Resu
     } else {
         serde_json::from_str(&existing_data)?
     };
-    wrapper.files.insert(file_details.order.clone(), file_details);
+    for e in items{
+        wrapper.files.insert(e.order.clone(), e.clone());
+    }
+    
     wrapper.meta.last_updated = Some(Utc::now().to_rfc3339());
 
     // Overwrite the file
