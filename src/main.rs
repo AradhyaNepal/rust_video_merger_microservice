@@ -4,11 +4,16 @@ mod video_merger;
 use video_merger::progressive_join;
 use video_fetcher::fetch_videos;
 use video_logger::{save_file_details, FileDetails,FileStatus};
-
+use std::env;
 
 fn main() {
-    let input="/Users/aradhyagopal/Rust/Resources";
-    let output="/Users/aradhyagopal/Rust/Output";
+  let args: Vec<String> = env::args().collect();
+  if args.len() < 3 {
+    eprintln!("Please provide two inputs.");
+    std::process::exit(1);
+    }
+    let input = &args[1];
+    let output = &args[2];
     let value:Vec<FileDetails> = fetch_videos(&input)
     .unwrap()
     .iter()

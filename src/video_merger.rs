@@ -16,7 +16,7 @@ pub fn progressive_join(files: Vec<String>, output: &str) -> Result<(), Box<dyn 
             1 => {
                 // Join the first two files using FFmpeg in terminal
                 join_two_files_terminal(&current_joined_file.as_ref().unwrap(), &file, &output)?;
-                fs::remove_file(current_joined_file.as_ref().unwrap())?;
+            
                 current_joined_file = Some(output);
             }
             _ => {
